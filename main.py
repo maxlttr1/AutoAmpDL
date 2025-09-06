@@ -4,7 +4,7 @@ import subprocess
 import shutil
 import sys
 
-def main(url):
+def dependencies_check():
     # Check for dependencies
     if shutil.which("ffmpeg") is None:
         print("❌ ffmpeg is not installed or not in PATH. Please install it before running this script.")
@@ -12,7 +12,8 @@ def main(url):
     if shutil.which("yt-dlp") is None:
         print("❌ yt-dlp is not installed or not in PATH. Please install it before running this script.")
         sys.exit(1)
-    
+
+def playlist_fetch(url):
     print("🔍 Fetching playlist information (this may take some time)...")
     # Get titles and IDs
     result = subprocess.run(["yt-dlp", url, "--print", '%(id)s', "--flat-playlist"], capture_output=True, text=True)
@@ -22,7 +23,8 @@ def main(url):
         sys.exit(1)
 
     print(f"🎵 Found {len(result.stdout.strip().splitlines())} tracks to download:\n")
-    
+
+def download_playlist():
     # Download as flac
     print("⬇️ Starting download and conversion to FLAC (this may take some time)...")
 
@@ -44,8 +46,9 @@ def main(url):
         print("❌ Download failed. Please check your internet connection and the playlist URL.")
         sys.exit(1)
 
-    print("\n✅ Download completed! Starting loudness normalization for each track...\n")
+    print("\n✅ Download completed!\n")
 
+def normalize_playlist():
     # Normalize each downloaded FLAC file
     files = os.listdir("./tmp/")
     os.chdir("./tmp")
@@ -69,15 +72,20 @@ def main(url):
                 print(f"⚠️ Failed to replace original file: {e}")
         else:
             print(f"❌ Loudness normalization failed for '{file}'.")
-    
+
+def main(url):
+    dependencies_check()
+    playlist_fetch(url)
+    download_playlist(url)
+    normalize_playlist()
+
     print("🎉 All done! Your tracks are downloaded and normalized.")
 
 if __name__ == "__main__":
-    url = "https://www.youtube.com/playlist?list=PLTo6svdhIL1cxS4ffGueFpVCF756ip-ab"
     '''if len(sys.argv) > 1:
         url = sys.argv[1]
         print(sys.argv)
     else:
         print("Please add an url to start the download.")
         sys.exit(1)'''
-    main(url)
+    main("https://www.youtube.com/playlist?list=PLkF8ZEu4FB1nm_omaMwtZ5wIO7S-01uCu")
