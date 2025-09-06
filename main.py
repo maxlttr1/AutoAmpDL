@@ -3,6 +3,7 @@ import concurrent.futures
 import subprocess
 import shutil
 import sys
+import argparse
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TimeElapsedColumn, TimeRemainingColumn
 
 def dependencies_check():
@@ -49,7 +50,7 @@ def normalize_file(file):
 
     normalized_file = "normalized_" + file
 
-    print(f"🎚️ Normalizing loudness: {file}")
+    print(f"🔊 Normalizing loudness: {file}")
     result = subprocess.run(["ffmpeg", "-y", "-i", file, "-filter:a", "loudnorm=I=-14:TP=-1.5:LRA=11", normalized_file], capture_output=True)
     
     if result.returncode == 0:
@@ -64,8 +65,8 @@ def normalize_file(file):
         print(f"❌ Loudness normalization failed for '{file}'.")
 
 def handle_file(id, file):
-    if download_file(f"https://www.youtube.com/watch?v={id}", file):
-        normalize_file(file)
+    download_file(f"https://www.youtube.com/watch?v={id}", file)
+    normalize_file(file)
 
 def handle_playlist(ids):
     with Progress(
@@ -92,9 +93,12 @@ def handle_playlist(ids):
         print(error)
         print("Directory ./tmp can not be removed")
 
-def main(url):
+def main(url, directory):
     dependencies_check()
     ids = playlist_fetch(url)
+
+    # Changes to the desired directory
+    os.chdir(directory)
 
     # Create a temp directory
     dir = "tmp"
@@ -111,10 +115,22 @@ def main(url):
     handle_playlist(ids)
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        url = sys.argv[1]
-        print(sys.argv)
-    else:
-        print("Please add an url to start the download.")
+    parser = argparse.ArgumentParser(description="AutoAmpDL")
+
+    # Exclusion for --url and --normalize-only
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('--url', help='URL to download from (playlist or a single audio/video)')
+    group.add_argument('--normalize-only', action='store_true', help='Run normalize-only mode')
+
+    parser.add_argument('directory', nargs='?', default='.', help='Directory to save the download (default: current directory)')
+
+    args = parser.parse_args()
+
+    if not(os.path.isdir(args.directory)):
+        print(f"{args.directory} not found. Please provide a correct directory")
         sys.exit(1)
-    main(url)
+
+    if args.normalize_only:
+        main_normalize_only(args.directory)
+    else:
+        main(args.url, args.directory)
