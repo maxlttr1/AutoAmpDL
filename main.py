@@ -38,7 +38,7 @@ def download_file(url, file):
         print("❌ Download failed. Please check your internet connection and the URL.")
         sys.exit(1)
 
-    print("\n✅ Download completed!\n")
+    print("\n✅ Download completed for {file} !\n")
 
 def normalize_file(file):
     # Check if file exists before processing
