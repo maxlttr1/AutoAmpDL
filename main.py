@@ -48,27 +48,29 @@ def normalize_file(file):
         print(f"⚠️ File '{file}' not found, skipping normalization.")
         return
 
-    normalized_file = "normalized_" + file
+    # Strip the original extension
+    file_wo_ext = os.path.splitext(file)[0]
+    normalized_file = f"normalized_{file_wo_ext}.flac"
 
     print(f"🔊 Normalizing loudness: {file}")
-    result = subprocess.run(["ffmpeg", "-y", "-i", file, "-filter:a", "loudnorm=I=-14:TP=-1.5:LRA=11", normalized_file], capture_output=True)
+    result = subprocess.run(["ffmpeg", "-y", "-i", file, "-filter:a", "loudnorm=I=-14:TP=-1.5:LRA=11", "-map", "a", "-map_metadata", "-1", normalized_file], capture_output=True)
     
     if result.returncode == 0:
         print(f"✅ Loudness normalization successful for '{file}'.\n")
         try:
             os.remove(file)
-            os.rename(normalized_file, file)
-            shutil.move(file, "../")
+            os.rename(normalized_file, f"{file_wo_ext}.flac")
         except Exception as e:
             print(f"⚠️ Failed to replace original file: {e}")
     else:
-        print(f"❌ Loudness normalization failed for '{file}'.")
+        print(f"❌ Loudness normalization failed for '{file}'.\n")
 
-def handle_file(id, file):
-    download_file(f"https://www.youtube.com/watch?v={id}", file)
+def handle_file(file, normalize_only, id = None):
+    if not(normalize_only):
+        download_file(f"https://www.youtube.com/watch?v={id}", file)
     normalize_file(file)
 
-def handle_playlist(ids):
+def handle_playlist(directory, normalize_only, ids = None):
     with Progress(
         SpinnerColumn(),
         "[progress.description]{task.description}",
@@ -76,43 +78,58 @@ def handle_playlist(ids):
         "[progress.percentage]{task.percentage:>3.0f}%",
         TimeElapsedColumn(),
     ) as progress:
-        task = progress.add_task("Downloading & Normalizing tracks...", total=len(ids))
         # Normalize each downloaded FLAC file
-        files = os.listdir("./tmp/")
-        os.chdir("./tmp")
+        if not(normalize_only):
+            os.chdir("./tmp")
+            task = progress.add_task("Downloading & Normalizing tracks...", total=len(ids))
 
-        with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
-            futures = {executor.submit(handle_file, video_id, f"{title} [{video_id}].flac"): (video_id, title) for video_id, title in ids}
-            for future in concurrent.futures.as_completed(futures):
-                progress.update(task, advance=1)
-    
-    try:
-        os.rmdir("../tmp")
-        print("Directory ./tmp has been removed successfully")
-    except OSError as error:
-        print(error)
-        print("Directory ./tmp can not be removed")
+            with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
+                futures = {executor.submit(handle_file, f"{title} [{video_id}].flac", normalize_only, video_id): (video_id, title) for video_id, title in ids}
+                for future in concurrent.futures.as_completed(futures):
+                    progress.update(task, advance=1)
 
-def main(url, directory):
+            # Move all files from ./tmp to ../                
+            subprocess.run("mv ./* ../", shell=True)
+
+            try:
+                os.rmdir("../tmp")
+                print("Directory ./tmp has been removed successfully")
+            except OSError as error:
+                print(error)
+                print("Directory ./tmp can not be removed")
+        else:
+            files = os.listdir("./")
+            task = progress.add_task("Downloading & Normalizing tracks...", total=len(files))
+
+            with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
+                futures = {executor.submit(handle_file, file, normalize_only) for file in files}
+                for future in concurrent.futures.as_completed(futures):
+                    progress.update(task, advance=1)
+
+def main(directory, url = None, normalize_only = False):
     dependencies_check()
-    ids = playlist_fetch(url)
 
     # Changes to the desired directory
     os.chdir(directory)
 
-    # Create a temp directory
-    dir = "tmp"
-    try:
-        os.mkdir(dir)
-        print(f"Directory '{dir}' created successfully.")
-    except FileExistsError:
-        print(f"Directory '{dir}' already exists.")
-    except PermissionError:
-        print(f"Permission denied: Unable to create '{dir}'.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    if not(normalize_only):
+        ids = playlist_fetch(url)
 
-    handle_playlist(ids)
+        # Create a temp directory
+        dir = "tmp"
+        try:
+            os.mkdir(dir)
+            print(f"Directory '{dir}' created successfully.")
+        except FileExistsError:
+            print(f"Directory '{dir}' already exists.")
+        except PermissionError:
+            print(f"Permission denied: Unable to create '{dir}'.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+        handle_playlist(directory, normalize_only, ids)
+    else:
+        handle_playlist(directory, normalize_only)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="AutoAmpDL")
@@ -131,6 +148,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
     if args.normalize_only:
-        main_normalize_only(args.directory)
+        main(args.directory, normalize_only = True)
     else:
-        main(args.url, args.directory)
+        main(args.directory, args.url)
