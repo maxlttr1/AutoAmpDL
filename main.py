@@ -52,7 +52,7 @@ def normalize_file(file):
     file_wo_ext = os.path.splitext(file)[0]
     normalized_file = f"normalized_{file_wo_ext}.flac"
 
-    print(f"🔊 Normalizing loudness: {file}")
+    print(f"🔊 Normalizing loudness: {file}\n")
     result = subprocess.run(["ffmpeg", "-y", "-i", file, "-filter:a", "loudnorm=I=-14:TP=-1.5:LRA=11", "-map", "a", "-map_metadata", "-1", normalized_file], capture_output=True)
     
     if result.returncode == 0:
