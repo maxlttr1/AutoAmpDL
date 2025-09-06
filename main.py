@@ -3,7 +3,7 @@ import concurrent.futures
 import subprocess
 import shutil
 import sys
-from tqdm import tqdm
+from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TimeElapsedColumn, TimeRemainingColumn
 
 def dependencies_check():
     # Check for dependencies
@@ -64,16 +64,26 @@ def normalize_file(file):
         print(f"❌ Loudness normalization failed for '{file}'.")
 
 def handle_file(id, file):
-    download_file(f"https://www.youtube.com/watch?v={id}", file)
-    normalize_file(file)
+    if download_file(f"https://www.youtube.com/watch?v={id}", file):
+        normalize_file(file)
 
 def handle_playlist(ids):
-    # Normalize each downloaded FLAC file
-    files = os.listdir("./tmp/")
-    os.chdir("./tmp")
+    with Progress(
+        SpinnerColumn(),
+        "[progress.description]{task.description}",
+        BarColumn(),
+        "[progress.percentage]{task.percentage:>3.0f}%",
+        TimeElapsedColumn(),
+    ) as progress:
+        task = progress.add_task("Downloading & Normalizing tracks...", total=len(ids))
+        # Normalize each downloaded FLAC file
+        files = os.listdir("./tmp/")
+        os.chdir("./tmp")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
-        futures = {executor.submit(handle_file, video_id, f"{title} [{video_id}].flac"): (video_id, title) for video_id, title in ids}
+        with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
+            futures = {executor.submit(handle_file, video_id, f"{title} [{video_id}].flac"): (video_id, title) for video_id, title in ids}
+            for future in concurrent.futures.as_completed(futures):
+                progress.update(task, advance=1)
     
     try:
         os.rmdir("../tmp")
@@ -100,13 +110,11 @@ def main(url):
 
     handle_playlist(ids)
 
-    print("🎉 All done! Your tracks are downloaded and normalized.")
-
 if __name__ == "__main__":
-    '''if len(sys.argv) > 1:
+    if len(sys.argv) > 1:
         url = sys.argv[1]
         print(sys.argv)
     else:
         print("Please add an url to start the download.")
-        sys.exit(1)'''
-    main("https://www.youtube.com/playlist?list=PLkF8ZEu4FB1nm_omaMwtZ5wIO7S-01uCu")
+        sys.exit(1)
+    main(url)
