@@ -3,6 +3,7 @@ import concurrent.futures
 import subprocess
 import shutil
 import sys
+from tqdm import tqdm
 
 def dependencies_check():
     # Check for dependencies
@@ -38,7 +39,7 @@ def download_file(url, file):
         print("❌ Download failed. Please check your internet connection and the URL.")
         sys.exit(1)
 
-    print("\n✅ Download completed for {file} !\n")
+    print(f"\n✅ Download completed for {file} !\n")
 
 def normalize_file(file):
     # Check if file exists before processing
@@ -71,7 +72,7 @@ def handle_playlist(ids):
     files = os.listdir("./tmp/")
     os.chdir("./tmp")
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
         futures = {executor.submit(handle_file, video_id, f"{title} [{video_id}].flac"): (video_id, title) for video_id, title in ids}
     
     try:
