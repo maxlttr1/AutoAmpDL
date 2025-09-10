@@ -25,16 +25,22 @@ def playlist_fetch(url):
         sys.exit(1)
 
     ids = result.stdout.strip().splitlines()
-    ids = [id.split('|') for id in ids]
+    ids = [id.split('|', 1) for id in ids] # Split only the first |
+    for id in ids:
+        if len(id) > 2:
+            print(id)
     print(f"🎵 Found {len(ids)} tracks to download:\n")
 
     return ids
+
+def sanitize_filename(name):
+    return ''.join(c for c in s if c not in r'\/:*?"<>|').replace('\xa0', ' ').strip()
 
 def download_file(url, file):
     # Download as flac
     print(f"⬇️ Starting download for {file}...")
 
-    result = subprocess.run(["yt-dlp", "-f", "bestaudio", "--extract-audio", "--audio-quality", "0", "--audio-format", "flac", "--quiet", "-o", "./%(title)s [%(id)s].%(ext)s", url])
+    result = subprocess.run(["yt-dlp", "--cookies-from-browser", "firefox", "-f", "bestaudio", "--extract-audio", "--audio-quality", "0", "--audio-format", "flac", "--quiet", "-o", "./%(title)s [%(id)s].%(ext)s", url])
 
     if result.returncode != 0:
         print("❌ Download failed. Please check your internet connection and the URL.")
@@ -68,7 +74,7 @@ def normalize_file(file):
 def handle_file(file, normalize_only, id = None):
     if not(normalize_only):
         download_file(f"https://www.youtube.com/watch?v={id}", file)
-    normalize_file(file)
+    #normalize_file(file)
 
 def handle_playlist(directory, normalize_only, ids = None):
     with Progress(
