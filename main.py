@@ -40,10 +40,19 @@ def download_file(url, file):
     # Download as flac
     print(f"⬇️ Starting download for {file}...")
 
-    result = subprocess.run(["yt-dlp", "--cookies-from-browser", "firefox", "-f", "bestaudio", "--extract-audio", "--audio-quality", "0", "--audio-format", "flac", "--quiet", "-o", "./%(title)s [%(id)s].%(ext)s", url])
+    result = subprocess.run(["yt-dlp", "--cookies-from-browser", "firefox", "-f", "bestaudio", "--extract-audio", "--audio-quality", "0", "--audio-format", "flac", "--quiet", "-o", "./%(title)s [%(id)s].%(ext)s", url], capture_output=True, text=True)
+
+    output = result.stdout + result.stderr
 
     if result.returncode != 0:
         print("❌ Download failed. Please check your internet connection and the URL.")
+        sys.exit(1)
+
+    # Look for common failure keywords
+    if any(kw in output for kw in ["ERROR", "Failed", "Sign in to confirm", "Requested format is not available"]):
+        print(f"❌ Download issue detected for {url}")
+        err_log.write(f"URL: {url}\n")
+        err_log.write(output + "\n\n")
         sys.exit(1)
 
     print(f"\n✅ Download completed for {file} !\n")
