@@ -34,7 +34,7 @@ def playlist_fetch(url):
     return ids
 
 def sanitize_filename(name):
-    return ''.join(c for c in s if c not in r'\/:*?"<>|').replace('\xa0', ' ').strip()
+    return ''.join(c for c in name if c not in r'\/:*?"<>|').replace('\xa0', ' ').strip()
 
 def download_file(url, file):
     # Download as flac
@@ -94,7 +94,7 @@ def handle_playlist(directory, normalize_only, ids = None):
         TimeElapsedColumn(),
     ) as progress:
         # Normalize each downloaded FLAC file
-        if not(normalize_only):
+        if not normalize_only:
             os.chdir("./tmp")
             task = progress.add_task("Downloading & Normalizing tracks...", total=len(ids))
 
