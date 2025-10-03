@@ -4,3 +4,8 @@
 *.opus
 ./test/*
 cookies.txt
+__pycache__
+.vscode
+ffmpeg-env
+tmp/
+tmp/*
