@@ -40,7 +40,7 @@ def download_file(url, file):
     # Download as flac
     print(f"⬇️ Starting download for {file}...")
 
-    result = subprocess.run(["yt-dlp", "--cookies-from-browser", "firefox", "-f", "bestaudio", "--extract-audio", "--audio-quality", "0", "--audio-format", "flac", "--quiet", "-o", "./%(title)s [%(id)s].%(ext)s", url], capture_output=True, text=True)
+    result = subprocess.run(["yt-dlp", "--cookies", "./cookies.txt", "-f", "bestaudio", "--extract-audio", "--audio-quality", "0", "--audio-format", "flac", "--quiet", "-o", "./%(title)s [%(id)s].%(ext)s", url], capture_output=True, text=True)
 
     output = result.stdout + result.stderr
 
@@ -85,7 +85,7 @@ def handle_file(file, normalize_only, id = None):
         download_file(f"https://www.youtube.com/watch?v={id}", file)
     #normalize_file(file)
 
-def handle_playlist(directory, normalize_only, ids = None):
+def handle_playlist(normalize_only, ids = None):
     with Progress(
         SpinnerColumn(),
         "[progress.description]{task.description}",
@@ -100,7 +100,7 @@ def handle_playlist(directory, normalize_only, ids = None):
 
             with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
                 futures = {executor.submit(handle_file, f"{title} [{video_id}].flac", normalize_only, video_id): (video_id, title) for video_id, title in ids}
-                for future in concurrent.futures.as_completed(futures):
+                for _ in concurrent.futures.as_completed(futures):
                     progress.update(task, advance=1)
 
             # Move all files from ./tmp to ../                
