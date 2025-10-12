@@ -2,6 +2,7 @@
 *.mp3
 *.webm
 *.opus
+*.m4a
 ./test/*
 cookies.txt
 __pycache__
@@ -9,3 +10,4 @@ __pycache__
 ffmpeg-env
 tmp/
 tmp/*
+*cookies*.*
