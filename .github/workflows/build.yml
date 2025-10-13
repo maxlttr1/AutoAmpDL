@@ -1,4 +1,4 @@
-name: AutoAmmDL build
+name: AutoAmpDL build
 
 on:
   workflow_dispatch:
@@ -20,3 +20,4 @@ jobs:
           python-version: '3.13'
 
       - run: pip install pyinstaller
+      - run: pyinstaller --name "AutoAmpDL" --clean --onefile main.py
