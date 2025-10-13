@@ -17,7 +17,7 @@ def check_missing_tracks(tracks: list[Track], downloaded_files: list[Path]) -> l
             print(f"\033[31m❌ Missing: {track.title} ({track.video_id})\033[0m")
 
     if not missing_tracks:
-        print("\n\033[32m✅ All tracks appear to be downloaded!\033[0m")
+        print("\n\033[32m✅ All tracks appear to be downloaded!\033[0m\n")
 
 
     return missing_tracks

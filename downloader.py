@@ -3,17 +3,20 @@ from tracks import Track
 import subprocess
 from pathlib import Path
 
-def fetch_playlist(url: str) -> list[Track]:
+def fetch_playlist(url: str, indexes: str | None) -> list[Track]:
     print("\033[34m🔍 Fetching playlist information...\033[0m")
 
-    result = subprocess.run([
+    cmd = [
         "yt-dlp",
-        "--playlist-items", "1-100",
         url, 
         "--print", "%(id)s|%(title)s", 
-        "--flat-playlist"],
-        capture_output=True, text=True
-    )
+        "--flat-playlist"
+    ]
+
+    if indexes:
+        cmd.extend(["--playlist-items", indexes])
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
 
     if result.returncode != 0 or not result.stdout:
         raise RuntimeError("❌ Failed to get video info from playlist.")
@@ -28,15 +31,14 @@ def fetch_playlist(url: str) -> list[Track]:
 
     return tracks
 
-def download_playlist(url : str, cookies_path: Path, target_dir: Path) -> list[Path]:
+def download_playlist(url : str, cookies_path: Path, target_dir: Path, indexes: str | None) -> list[Path]:
     print(f"⬇️ Starting download of the playlist: {url} ...")
 
     output_template = str(target_dir / "%(title)s [%(id)s].%(ext)s")
 
     try:
-        subprocess.run([
+        cmd = [
             "yt-dlp",
-            "--playlist-items", "1-100",
             #"-f", "bestaudio",
             "--cookies", str(cookies_path),
             "--extract-audio",
@@ -44,7 +46,12 @@ def download_playlist(url : str, cookies_path: Path, target_dir: Path) -> list[P
             "--audio-format", "flac",
             "-o", output_template,
             url
-        ])
+        ]
+
+        if indexes:
+            cmd.extend(["--playlist-items", indexes])
+        
+        subprocess.run(cmd)
 
     except subprocess.TimeoutExpired:
         raise RuntimeError("❌ Download timed out\n")

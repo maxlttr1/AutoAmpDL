@@ -11,3 +11,7 @@ ffmpeg-env
 tmp/
 tmp/*
 *cookies*.*
+dist
+build
+main.spec
+AutoAmpDL.spec
