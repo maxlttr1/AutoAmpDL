@@ -20,8 +20,8 @@ def arg_parser() -> None:
     parser.add_argument('--download-only', action='store_true', help='Run download-only mode')
     parser.add_argument('directory', nargs='?', default='.', help='Directory to save the download (default: current directory)')
     parser.add_argument('--cookies', help='Cookie file to provide to yt-dlp (for age restricted content or rate limiting)')
-    parser.add_argument('--start', help='Where to start the downloading the playlist from')
-    parser.add_argument('--end', help='Where to end downloading the playlist')
+    parser.add_argument('--start', type=int, help='Where to start the downloading the playlist from')
+    parser.add_argument('--end', type=int, help='Where to end downloading the playlist')
 
     args = parser.parse_args()
     target_dir = Path(args.directory).resolve()
