@@ -9,7 +9,7 @@ def fetch_playlist(url: str, indexes: str | None) -> list[Track]:
     cmd = [
         "yt-dlp",
         url, 
-        "--print", "%(id)s|%(title)s", 
+        "--print", "%(id)s|%(title)s",
         "--flat-playlist"
     ]
 
@@ -44,6 +44,7 @@ def download_playlist(url : str, cookies_path: Path, target_dir: Path, indexes: 
             "--extract-audio",
             "--audio-quality", "0",
             "--audio-format", "flac",
+            "--restrict-filenames", # Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames
             "-o", output_template,
             url
         ]
@@ -57,28 +58,6 @@ def download_playlist(url : str, cookies_path: Path, target_dir: Path, indexes: 
         raise RuntimeError("❌ Download timed out\n")
     except Exception:
         raise RuntimeError("❌ Unexpected error during download\n")
-
-    '''
-    playlist_items = None
-    if start and end:
-        playlist_items = f"{start}-{end}"
-    elif start:
-        playlist_items = f"{start}-"
-    elif end:
-        playlist_items = f"1-{end}"
-
-    cmd = [
-        "yt-dlp",
-        "--cookies", str(cookies_path),
-        "--extract-audio",
-        "--audio-format", "flac",
-        "--audio-quality", "0",
-        "-o", str(target_dir / "%(title)s [%(id)s].%(ext)s"),
-    ]
-
-    if playlist_items:
-        cmd.extend(["--playlist-items", playlist_items])
-    '''
 
     print(f"\n\033[32m✅ Download completed for {url}\033[0m\n")
 
