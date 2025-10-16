@@ -7,9 +7,6 @@ from pathlib import Path
 import threading
 import subprocess
 
-# -----------------------------
-# Function to run yt-dlp
-# -----------------------------
 def download_audio(url: str, target_dir: Path, log_display: ScrolledText):
     if not url.strip():
         messagebox.showerror("Error", "Please enter a valid URL.")
@@ -54,11 +51,6 @@ def download_audio(url: str, target_dir: Path, log_display: ScrolledText):
     except Exception as e:
         messagebox.showerror("Error", f"Download failed:\n{e}")
 
-
-
-# -----------------------------
-# Function to read and show log
-# -----------------------------
 def display_log(log_path: Path, text_widget: ScrolledText):
     if not log_path.exists():
         text_widget.insert(tk.END, "Log file not found.\n")
@@ -72,10 +64,6 @@ def display_log(log_path: Path, text_widget: ScrolledText):
     text_widget.insert(tk.END, log_contents)
     text_widget.config(state=tk.DISABLED)
 
-
-# -----------------------------
-# Button click handler
-# -----------------------------
 def on_download_click(entry: tk.Entry, log_display: ScrolledText):
     url = entry.get()
     target_dir = Path.cwd()
@@ -91,11 +79,7 @@ def choose_directory():
     selected_dir = filedialog.askdirectory()
     if selected_dir:
         print("Selected directory:", selected_dir)
-        # You can also store it in a global or pass to download logic
 
-# -----------------------------
-# GUI Setup
-# -----------------------------
 def create_gui():
     root = tk.Tk()
     root.title("Music Downloader with Log Viewer")
@@ -123,9 +107,5 @@ def create_gui():
 
     root.mainloop()
 
-
-# -----------------------------
-# Run the app
-# -----------------------------
 if __name__ == "__main__":
     create_gui()
