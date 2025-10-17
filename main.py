@@ -133,7 +133,6 @@ def gui():
 
         for proc in subprocesses:
             if proc.poll() is None:  # Check if process is still running
-                print(f"Terminating running process: {proc}")
                 proc.terminate()  # Gracefully terminate the subprocess
                 proc.wait()  # Wait for the process to terminate
         subprocesses.clear()
