@@ -58,7 +58,7 @@ def download_playlist(url : str, cookies_path: Path, target_dir: Path, indexes: 
 
         if indexes:
             cmd.extend(["--playlist-items", indexes])
-        
+
         proc = subprocess.Popen(cmd)
         subprocesses.append(proc)
 

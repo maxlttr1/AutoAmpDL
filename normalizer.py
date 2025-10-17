@@ -2,7 +2,11 @@ import subprocess
 import json
 from pathlib import Path
 
+subprocesses = []
+
 def analyse_loudness(file_path: Path) -> dict:
+    global subprocesses
+
     cmd = [
         "ffmpeg",
         "-i", str(file_path),
@@ -11,8 +15,9 @@ def analyse_loudness(file_path: Path) -> dict:
         "-"
     ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    stderr = result.stderr
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    subprocesses.append(proc)
+    stdout, stderr = proc.communicate()  # Capture the output and error
 
     json_str = ""
     in_json = False
@@ -31,6 +36,8 @@ def analyse_loudness(file_path: Path) -> dict:
     return json.loads(json_str)
 
 def normalize_audio(file_path: Path) -> None:
+    global subprocesses
+
     if not file_path.is_file():
         print(f"⚠️ File '{file_path}' not found, skipping normalization.")
         return
@@ -57,10 +64,13 @@ def normalize_audio(file_path: Path) -> None:
         "-map_metadata", "-1", # Remove all metadata 
         str(normalized_file)
     ]
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
     
-    if result.returncode == 0:
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    subprocesses.append(proc)
+
+    stdout, stderr = proc.communicate()  # Capture the output and error
+    
+    if proc.returncode == 0:
         print(f"✅ Loudness normalization successful for '{file_path.name}'.")
         try:
             file_path.unlink()

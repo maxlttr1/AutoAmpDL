@@ -127,7 +127,10 @@ def gui():
         root.destroy()
 
     def terminate_subprocesses():
-        from downloader import subprocesses
+        from downloader import subprocesses as s1
+        from normalizer import subprocesses as s2
+        subprocesses = s1 + s2
+
         for proc in subprocesses:
             if proc.poll() is None:  # Check if process is still running
                 print(f"Terminating running process: {proc}")
