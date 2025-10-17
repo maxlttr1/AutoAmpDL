@@ -116,7 +116,7 @@ def gui():
 
     # === Log output ===
     log_frame = tk.LabelFrame(root, text="Logs", padx=0, pady=0)
-    log_frame.pack(padx=10, pady=(2,10), fill="both", expand=True)
+    log_frame.pack(padx=10, pady=(0,10), fill="both", expand=True)
     logs = ScrolledText(log_frame, width=85, height=20, wrap=tk.WORD, state=tk.DISABLED)
     logs.pack(fill="both", expand=True)
 
