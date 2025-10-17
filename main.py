@@ -111,7 +111,8 @@ def gui():
         root,
         text="▶ Start",
         bg="#4CAF50", fg="white", font=("Arial", 11, "bold"),
-        command=lambda: click_start(url_input, target_dir, cookie_file, mode, start, end)
+        command=lambda: click_start(url_input, target_dir, cookie_file, mode, start, end),
+        padx=30
     ).pack(pady=5)
 
     # === Log output ===
