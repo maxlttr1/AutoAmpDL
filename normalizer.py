@@ -2,6 +2,8 @@ import subprocess
 import json
 from pathlib import Path
 
+import tkinter as tk
+
 subprocesses = []
 
 def analyse_loudness(file_path: Path) -> dict:
@@ -35,8 +37,11 @@ def analyse_loudness(file_path: Path) -> dict:
 
     return json.loads(json_str)
 
-def normalize_audio(file_path: Path) -> None:
+def normalize_audio(file_path: Path, logs) -> None:
+    from main import display_log
     global subprocesses
+
+    log_path = "./yt-dlp-log.txt"
 
     if not file_path.is_file():
         print(f"⚠️ File '{file_path}' not found, skipping normalization.")
@@ -64,13 +69,14 @@ def normalize_audio(file_path: Path) -> None:
         "-map_metadata", "-1", # Remove all metadata 
         str(normalized_file)
     ]
-    
+
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     subprocesses.append(proc)
 
     stdout, stderr = proc.communicate()  # Capture the output and error
     
     if proc.returncode == 0:
+        display_log(logs, f"✅ Loudness normalization successful for '{file_path.name}'")
         print(f"✅ Loudness normalization successful for '{file_path.name}'.")
         try:
             file_path.unlink()

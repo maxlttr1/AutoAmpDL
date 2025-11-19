@@ -1,8 +1,6 @@
 import argparse
 import sys
-
 from pathlib import Path
-from concurrent.futures import ProcessPoolExecutor, as_completed
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TimeElapsedColumn, TimeRemainingColumn
 
 from downloader import fetch_playlist, download_playlist
@@ -54,10 +52,10 @@ def arg_parser() -> None:
 
     launch_processes(normalize_only=args.normalize_only, download_only=args.download_only, target_dir=target_dir, url=args.url, cookie_file=cookie_file, indexes=indexes)
 
-def launch_processes(normalize_only: bool, download_only: bool, target_dir: Path, url: str | None, cookie_file: Path, indexes: str | None) -> None:
+def launch_processes(normalize_only: bool, download_only: bool, target_dir: Path, url: str | None, cookie_file: Path, indexes: str | None, logs) -> None:
     if normalize_only:
         files = [file for file in target_dir.iterdir() if file.is_file()]
-        with Progress(
+        '''with Progress(
             SpinnerColumn(),
             "[progress.description]{task.description}",
             BarColumn(),
@@ -65,14 +63,14 @@ def launch_processes(normalize_only: bool, download_only: bool, target_dir: Path
             TimeElapsedColumn(),
         ) as progress:
             task = progress.add_task("Normalizing tracks...", total=len(files))
-            '''
-            with ProcessPoolExecutor(max_workers=5) as executor:
-                futures = {executor.submit(normalize_audio, file): file for file in files}
-                for _ in as_completed(futures):
-                    progress.update(task, advance=1)'''
+            
             for file in files:
                 normalize_audio(file)
-                progress.update(task, advance=1)
+                progress.update(task, advance=1)'''
+        for index, file in enumerate(files):
+            normalize_audio(file, logs)
+            #updateBar(index + 1, len(files)) 
+        
     else:
         tracks = fetch_playlist(url=url, indexes=indexes)
         temp_dir = target_dir / "tmp"
@@ -82,19 +80,6 @@ def launch_processes(normalize_only: bool, download_only: bool, target_dir: Path
 
         if downloaded_files and not(download_only):
             # Normalize downloaded files
-            '''with Progress(
-                SpinnerColumn(),
-                "[progress.description]{task.description}",
-                BarColumn(),
-                "[progress.percentage]{task.percentage:>3.0f}%",
-                TimeElapsedColumn(),
-            ) as progress:
-                task = progress.add_task("Normalizing tracks...", total=len(downloaded_files))
-
-                with ProcessPoolExecutor(max_workers=5) as executor:
-                    futures = {executor.submit(normalize_audio, file): file for file in downloaded_files}
-                    for _ in as_completed(futures):
-                        progress.update(task, advance=1)'''
             with Progress(
                 SpinnerColumn(),
                 "[progress.description]{task.description}",

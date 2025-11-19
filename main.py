@@ -1,15 +1,17 @@
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, ttk
 from tkinter.scrolledtext import ScrolledText
 from pathlib import Path
 import threading
 import subprocess
 
 from dependencies import check_dependencies
-from logic import launch_processes
+from logic import launch_processes, arg_parser
 
 target_dir = Path.cwd()
 cookie_file = None
+progress = None
+root = None
 
 def choose_directory(dir_label):
     global target_dir
@@ -21,7 +23,7 @@ def choose_cookie(cookie_label):
     cookie_file = Path(filedialog.askopenfilename())
     cookie_label.config(text=f"🍪 {cookie_file}")
 
-def click_start(url_input: tk.Entry, target_dir: Path, cookie_file: Path, mode: tk.StringVar, start: tk.Spinbox, end: tk.Spinbox):  
+def click_start(url_input: tk.Entry, target_dir: Path, cookie_file: Path, mode: tk.StringVar, start: tk.Spinbox, end: tk.Spinbox, logs: ScrolledText):      
     url = url_input.get().strip()
 
     start = start.get().strip()
@@ -47,20 +49,40 @@ def click_start(url_input: tk.Entry, target_dir: Path, cookie_file: Path, mode: 
 
     threading.Thread(
         target=launch_processes,
-        args=(normalize_only, download_only, target_dir, url, cookie_file, indexes),
+        args=(normalize_only, download_only, target_dir, url, cookie_file, indexes, logs),
         daemon=True
     ).start()
+
+def updateBar(index: int, total: int) -> None:
+    global progress
+    global root
+
+    progress['value'] = index / total * 100
+    root.update_idletasks()
+
+def display_log(logs: ScrolledText, message: str) -> None:
+    logs.config(state=tk.NORMAL)
+    #logs.delete(1.0, tk.END)
+    
+    logs.insert(tk.END, f"{message}.\n")
+    logs.see(tk.END)
+    logs.update_idletasks()
+
+    logs.config(state=tk.DISABLED)
 
 def main() -> None:
     check_dependencies()
     try:
-        gui()
+        #gui()
+        arg_parser()
     except KeyboardInterrupt:
         print("\nInterrupted by user (Ctrl+C). Exiting gracefully.")
 
 def gui():
     global target_dir
     global cookie_file
+    global progress
+    global root
 
     root = tk.Tk()
     root.title("AutoAmpDL")
@@ -111,7 +133,7 @@ def gui():
         root,
         text="▶ Start",
         bg="#4CAF50", fg="white", font=("Arial", 11, "bold"),
-        command=lambda: click_start(url_input, target_dir, cookie_file, mode, start, end),
+        command=lambda: click_start(url_input, target_dir, cookie_file, mode, start, end, logs),
         padx=30
     ).pack(pady=5)
 
@@ -120,6 +142,11 @@ def gui():
     log_frame.pack(padx=10, pady=(0,10), fill="both", expand=True)
     logs = ScrolledText(log_frame, width=85, height=20, wrap=tk.WORD, state=tk.DISABLED)
     logs.pack(fill="both", expand=True)
+
+    '''
+    progress = ttk.Progressbar(root, length = 100, mode = 'determinate')
+    progress.pack(pady=10, fill="x", padx=10)
+    '''
 
     def on_closing():
         print("GUI is closing. Terminating subprocesses...")
