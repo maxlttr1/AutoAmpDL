@@ -6,7 +6,7 @@ def main() -> None:
     try:
         arg_parser()
     except KeyboardInterrupt:
-        print("\nInterrupted by user (Ctrl+C). Exiting gracefully.")
+        print("\nInterrupted by user (Ctrl+C).")
 
 if __name__ == "__main__":
     main()

@@ -3,7 +3,11 @@ from tracks import Track
 import subprocess
 from pathlib import Path
 
+subprocesses = []
+
 def fetch_playlist(url: str, indexes: str | None) -> list[Track]:
+    global subprocesses
+
     print("\033[34m🔍 Fetching playlist information...\033[0m")
 
     cmd = [
@@ -17,6 +21,7 @@ def fetch_playlist(url: str, indexes: str | None) -> list[Track]:
         cmd.extend(["--playlist-items", indexes])
 
     result = subprocess.run(cmd, capture_output=True, text=True)
+    subprocesses.append(result)
 
     if result.returncode != 0 or not result.stdout:
         raise RuntimeError("❌ Failed to get video info from playlist.")
@@ -32,6 +37,8 @@ def fetch_playlist(url: str, indexes: str | None) -> list[Track]:
     return tracks
 
 def download_playlist(url : str, cookies_path: Path, target_dir: Path, indexes: str | None) -> list[Path]:
+    global subprocesses
+
     print(f"⬇️ Starting download of the playlist: {url} ...")
 
     output_template = str(target_dir / "%(title)s [%(id)s].%(ext)s")
@@ -52,7 +59,8 @@ def download_playlist(url : str, cookies_path: Path, target_dir: Path, indexes: 
         if indexes:
             cmd.extend(["--playlist-items", indexes])
         
-        subprocess.run(cmd)
+        result = subprocess.run(cmd)
+        subprocesses.append(result)
 
     except subprocess.TimeoutExpired:
         raise RuntimeError("❌ Download timed out\n")

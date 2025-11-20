@@ -10,7 +10,26 @@ from normalizer import normalize_audio
 from check import check_missing_tracks
 
 def arg_parser() -> None:
-    parser = argparse.ArgumentParser(description="AutoAmpDL")
+    parser = argparse.ArgumentParser(description="AutoAmpDL",
+        epilog = """Examples:
+    
+    # Download a playlist and normalize the audio
+    python script.py --url "https://www.youtube.com/playlist?list=PL..." ./output_dir
+
+    # Download only (no normalization)
+    python script.py --url "https://www.youtube.com/playlist?list=PL..." --download-only ./output_dir
+
+    # Normalize only (existing files in a directory)
+    python script.py --normalize-only ./output_dir
+
+    # Download a specific range of tracks (e.g., tracks 10 to 20)
+    python script.py --url "https://www.youtube.com/playlist?list=PL..." --start 10 --end 20 ./output_dir
+
+    # Use cookies for downloading (e.g., for age-restricted content)
+    python script.py --url "https://www.youtube.com/playlist?list=PL..." --cookies cookies.txt ./output_dir
+        """,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
 
     # Exclusion for --url and --normalize-only
     group = parser.add_mutually_exclusive_group(required=True)
@@ -65,11 +84,17 @@ def launch_processes(normalize_only: bool, download_only: bool, target_dir: Path
             TimeElapsedColumn(),
         ) as progress:
             task = progress.add_task("Normalizing tracks...", total=len(files))
+            for file in files:
+                normalize_audio(file)
+                progress.update(task, advance=1)
+            """task = progress.add_task("Normalizing tracks...", total=len(files))
 
             with ProcessPoolExecutor(max_workers=5) as executor:
                 futures = {executor.submit(normalize_audio, file): file for file in files}
                 for _ in as_completed(futures):
-                    progress.update(task, advance=1)
+                    progress.update(task, advance=1)"""
+        
+                    
     else:
         tracks = fetch_playlist(url=url, indexes=indexes)
         temp_dir = target_dir / "tmp"
