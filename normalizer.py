@@ -6,7 +6,7 @@ def analyse_loudness(file_path: Path) -> dict:
     cmd = [
         "ffmpeg",
         "-i", str(file_path),
-        "-af", "loudnorm=I=-14:TP=-1:print_format=json",
+        "-af", "loudnorm=I=-14:TP=-1:LRA=14:print_format=json",
         "-f", "null",
         "-"
     ]
