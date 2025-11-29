@@ -17,3 +17,5 @@ main.spec
 AutoAmpDL.spec
 missing music
 yt-dlp-log.txt
+.venv
+.direnv
