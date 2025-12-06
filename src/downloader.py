@@ -3,10 +3,12 @@ from tracks import Track
 import subprocess
 from pathlib import Path
 
-subprocesses = []
-
-def fetch_playlist(url: str, indexes: str | None) -> list[Track]:
-    global subprocesses
+def fetch_playlist(url: str, indexes: str | None, archive_file: Path) -> list[Track]:
+    idsArchive = []
+    if archive_file:
+        with open(archive_file, 'r') as f:
+            for line in f:
+                idsArchive.append(line.strip().removeprefix("youtube "))
 
     print("\033[34m🔍 Fetching playlist information...\033[0m")
 
@@ -21,7 +23,6 @@ def fetch_playlist(url: str, indexes: str | None) -> list[Track]:
         cmd.extend(["--playlist-items", indexes])
 
     result = subprocess.run(cmd, capture_output=True, text=True)
-    subprocesses.append(result)
 
     if result.returncode != 0 or not result.stdout:
         raise RuntimeError("❌ Failed to get video info from playlist.")
@@ -30,15 +31,14 @@ def fetch_playlist(url: str, indexes: str | None) -> list[Track]:
     tracks = []
     for line in lines:
         video_id, title = line.split("|", 1)
-        tracks.append(Track(video_id=video_id.strip(), title=title.strip()))
+        if not(video_id.strip() in idsArchive):
+            tracks.append(Track(video_id=video_id.strip(), title=title.strip()))
 
     print(f"\033[32m🎵 Found {len(tracks)} tracks to download:\033[0m")
 
     return tracks
 
 def download_playlist(url : str, cookies_path: Path, target_dir: Path, indexes: str | None) -> list[Path]:
-    global subprocesses
-
     print(f"⬇️ Starting download of the playlist: {url} ...")
 
     output_template = str(target_dir / "%(title)s [%(id)s].%(ext)s")
@@ -53,6 +53,7 @@ def download_playlist(url : str, cookies_path: Path, target_dir: Path, indexes: 
             "--audio-format", "flac",
             "--restrict-filenames", # Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames
             "-o", output_template,
+            "--download-archive", "ids.txt",
             url
         ]
 
@@ -60,7 +61,6 @@ def download_playlist(url : str, cookies_path: Path, target_dir: Path, indexes: 
             cmd.extend(["--playlist-items", indexes])
         
         result = subprocess.run(cmd)
-        subprocesses.append(result)
 
     except subprocess.TimeoutExpired:
         raise RuntimeError("❌ Download timed out\n")

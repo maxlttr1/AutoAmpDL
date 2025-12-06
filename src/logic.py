@@ -27,6 +27,12 @@ def arg_parser() -> None:
 
     # Use cookies for downloading (e.g., for age-restricted content)
     python script.py --url "https://www.youtube.com/playlist?list=PL..." --cookies cookies.txt ./output_dir
+
+    # Use a download archive to skip already downloaded videos
+    python script.py --url "https://www.youtube.com/playlist?list=PL..." --download-archive ids.txt ./output_dir
+
+    # Use a download archive AND download only a specific range
+    python script.py --url "https://www.youtube.com/playlist?list=PL..." --download-archive ids.txt --start 5 --end 15 ./output_dir
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -41,6 +47,7 @@ def arg_parser() -> None:
     parser.add_argument('--cookies', help='Cookie file to provide to yt-dlp (for age restricted content or rate limiting)')
     parser.add_argument('--start', type=int, help='Where to start the downloading the playlist from')
     parser.add_argument('--end', type=int, help='Where to end downloading the playlist')
+    parser.add_argument('--download-archive', help='Checks whether a video has already been downloaded.')
 
     args = parser.parse_args()
     target_dir = Path(args.directory).resolve()
@@ -71,9 +78,16 @@ def arg_parser() -> None:
         print(f"Index start: {args.start}, Index end: {args.end}. Please provide correct Index values")
         sys.exit(1)
 
-    launch_processes(normalize_only=args.normalize_only, download_only=args.download_only, target_dir=target_dir, url=args.url, cookie_file=cookie_file, indexes=indexes)
+    archive_file = ""
+    if args.download_archive:
+        archive_file = Path(args.download_archive).resolve()
+        if not(archive_file.is_file()):
+            print(f"{args.download_archive} not found. Please provide a correct file")
+            sys.exit(1)
 
-def launch_processes(normalize_only: bool, download_only: bool, target_dir: Path, url: str | None, cookie_file: Path, indexes: str | None) -> None:
+    launch_processes(normalize_only=args.normalize_only, download_only=args.download_only, target_dir=target_dir, url=args.url, cookie_file=cookie_file, indexes=indexes, archive_file=archive_file)
+
+def launch_processes(normalize_only: bool, download_only: bool, target_dir: Path, url: str | None, cookie_file: Path, indexes: str | None, archive_file: Path) -> None:
     if normalize_only:
         files = [file for file in target_dir.iterdir() if file.is_file()]
         with Progress(
@@ -96,7 +110,7 @@ def launch_processes(normalize_only: bool, download_only: bool, target_dir: Path
         
                     
     else:
-        tracks = fetch_playlist(url=url, indexes=indexes)
+        tracks = fetch_playlist(url=url, indexes=indexes, archive_file=archive_file)
         temp_dir = target_dir / "tmp"
         temp_dir.mkdir(exist_ok=True)
 

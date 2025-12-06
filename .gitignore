@@ -19,3 +19,5 @@ missing music
 yt-dlp-log.txt
 .venv
 .direnv
+test/
+ids.txt
