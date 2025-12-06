@@ -38,7 +38,7 @@ def fetch_playlist(url: str, indexes: str | None, archive_file: Path) -> list[Tr
 
     return tracks
 
-def download_playlist(url : str, cookies_path: Path, target_dir: Path, indexes: str | None) -> list[Path]:
+def download_playlist(url : str, cookies_path: Path, target_dir: Path, indexes: str | None, archive_file: Path) -> list[Path]:
     print(f"⬇️ Starting download of the playlist: {url} ...")
 
     output_template = str(target_dir / "%(title)s [%(id)s].%(ext)s")
@@ -53,7 +53,7 @@ def download_playlist(url : str, cookies_path: Path, target_dir: Path, indexes: 
             "--audio-format", "flac",
             "--restrict-filenames", # Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames
             "-o", output_template,
-            "--download-archive", "ids.txt",
+            "--download-archive", archive_file,
             url
         ]
 

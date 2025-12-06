@@ -114,7 +114,7 @@ def launch_processes(normalize_only: bool, download_only: bool, target_dir: Path
         temp_dir = target_dir / "tmp"
         temp_dir.mkdir(exist_ok=True)
 
-        downloaded_files = download_playlist(url=url, cookies_path=cookie_file, target_dir=temp_dir, indexes=indexes)
+        downloaded_files = download_playlist(url=url, cookies_path=cookie_file, target_dir=temp_dir, indexes=indexes, archive_file=archive_file)
 
         if downloaded_files and not(download_only):
             # Normalize downloaded files
