@@ -17,6 +17,7 @@
             buildInputs = with pkgs;[
               python312
               python312Packages.rich
+              yt-dlp
             ];
 
             shellHook = ''
