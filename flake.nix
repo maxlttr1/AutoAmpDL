@@ -11,12 +11,14 @@
     flake-utils.lib.eachDefaultSystem (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
+          python = pkgs.python312.withPackages (ps: with ps; [
+            rich
+          ]);
         in 
         {
           devShells.default = pkgs.mkShell {
             buildInputs = with pkgs;[
-              python312
-              python312Packages.rich
+              python
               yt-dlp
             ];
 
