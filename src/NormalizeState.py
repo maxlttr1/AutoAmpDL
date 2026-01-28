@@ -48,7 +48,7 @@ class NormalizeOnlyState(NormalizeState):
 			    normalize_audio(file)
 			    progress.update(task, advance=1)
 
-		self.context.changeState(FinalState(self.context))
+		self.context.changeState(FinalState())
 		self.context.execute()
 
 def normalize_audio(file_path: Path) -> None:

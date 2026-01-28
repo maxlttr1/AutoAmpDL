@@ -20,5 +20,5 @@ class CleanState(State):
         except Exception as e:
             print(f"Failed to remove temporary directory: {e}")
 
-        self.context.changeState(FinalState(self.context))
+        self.context.changeState(FinalState())
         self.context.execute()
