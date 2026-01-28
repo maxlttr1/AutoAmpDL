@@ -14,25 +14,25 @@ def arg_parser() -> None:
         epilog = """Examples:
     
     # Download a playlist and normalize the audio
-    python script.py --url "https://www.youtube.com/playlist?list=PL..." ./output_dir
+    python main.py --url "https://www.youtube.com/playlist?list=PL..." ./output_dir
 
     # Download only (no normalization)
-    python script.py --url "https://www.youtube.com/playlist?list=PL..." --download-only ./output_dir
+    python main.py --url "https://www.youtube.com/playlist?list=PL..." --download-only ./output_dir
 
     # Normalize only (existing files in a directory)
-    python script.py --normalize-only ./output_dir
+    python main.py --normalize-only ./output_dir
 
     # Download a specific range of tracks (e.g., tracks 10 to 20)
-    python script.py --url "https://www.youtube.com/playlist?list=PL..." --start 10 --end 20 ./output_dir
+    python main.py --url "https://www.youtube.com/playlist?list=PL..." --start 10 --end 20 ./output_dir
 
     # Use cookies for downloading (e.g., for age-restricted content)
-    python script.py --url "https://www.youtube.com/playlist?list=PL..." --cookies cookies.txt ./output_dir
+    python main.py --url "https://www.youtube.com/playlist?list=PL..." --cookies cookies.txt ./output_dir
 
     # Use a download archive to skip already downloaded videos
-    python script.py --url "https://www.youtube.com/playlist?list=PL..." --download-archive ids.txt ./output_dir
+    python main.py --url "https://www.youtube.com/playlist?list=PL..." --download-archive ids.txt ./output_dir
 
     # Use a download archive AND download only a specific range
-    python script.py --url "https://www.youtube.com/playlist?list=PL..." --download-archive ids.txt --start 5 --end 15 ./output_dir
+    python main.py --url "https://www.youtube.com/playlist?list=PL..." --download-archive ids.txt --start 5 --end 15 ./output_dir
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
